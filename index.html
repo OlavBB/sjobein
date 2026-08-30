@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a0f12">
+  <title>Sjøbein</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap">
+  <style>
+    :root {
+      --bg: #0a0f12;
+      --fg: #f2f6f7;
+      --fg-dim: rgba(242, 246, 247, 0.6);
+      --fg-faint: rgba(242, 246, 247, 0.42);
+      --fg-mute: rgba(242, 246, 247, 0.3);
+      --hair: rgba(255, 255, 255, 0.07);
+      --hair-strong: rgba(255, 255, 255, 0.13);
+      --surface-1: rgba(255, 255, 255, 0.045);
+      --surface-2: rgba(255, 255, 255, 0.08);
+      --accent: #4fd1c5;
+      --accent-ink: #04211d;
+      --gren-mampapp: #f0b429;
+      --gren-olav: #4fd1c5;
+      --gren-betina: #f2777a;
+      --gren-benedicte: #a78bfa;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-sans);
+      letter-spacing: -0.01em;
+      min-height: 100vh;
+      overscroll-behavior: contain;
+    }
+
+    body {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 18px 18px calc(90px + env(safe-area-inset-bottom));
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--hair);
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header h1 .boat { color: var(--accent); }
+
+    .gren-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-1);
+      border: 1px solid var(--hair-strong);
+      border-radius: 999px;
+      padding: 7px 12px 7px 8px;
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--fg-dim);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .gren-badge:hover, .gren-badge:focus-visible { border-color: var(--hair-strong); color: var(--fg); outline: none; }
+    .gren-dot {
+      width: 8px; height: 8px; border-radius: 999px;
+      background: var(--dot, var(--accent));
+      flex: 0 0 auto;
+    }
+
+    /* ── Bottom nav ──────────────────────────────────────────────────── */
+
+    nav#tabbar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      display: flex;
+      justify-content: center;
+      background: rgba(10, 15, 18, 0.92);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--hair);
+      padding: 8px max(10px, env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));
+      z-index: 20;
+    }
+    .tabbar-inner {
+      display: flex;
+      width: 100%;
+      max-width: 520px;
+      gap: 4px;
+    }
+    .tab-btn {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--fg-mute);
+      font-family: var(--font-sans);
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 8px 4px 6px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+    }
+    .tab-btn svg { width: 20px; height: 20px; }
+    .tab-btn.active { color: var(--accent); background: color-mix(in oklab, var(--accent) 10%, transparent); }
+    .tab-btn:hover, .tab-btn:focus-visible { color: var(--fg); outline: none; }
+    .tab-btn.active:hover, .tab-btn.active:focus-visible { color: var(--accent); }
+    .tab-btn .unread-dot {
+      position: absolute; top: 4px; right: calc(50% - 18px);
+      width: 6px; height: 6px; border-radius: 999px;
+      background: var(--gren-betina);
+      display: none;
+    }
+    .tab-btn.has-unread .unread-dot { display: block; }
+
+    /* ── Sections ────────────────────────────────────────────────────── */
+
+    section.view { display: none; }
+    section.view.active { display: block; animation: fade-in 0.2s ease-out; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .stub {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--fg-faint);
+    }
+    .stub .stub-icon { color: var(--fg-mute); margin-bottom: 14px; }
+    .stub h2 { font-size: 15px; font-weight: 700; color: var(--fg-dim); margin-bottom: 6px; }
+    .stub p { font-size: 13px; line-height: 1.5; max-width: 280px; }
+
+    /* ── Kalender ────────────────────────────────────────────────────── */
+
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .cal-month {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      text-transform: capitalize;
+    }
+    .cal-nav { display: flex; gap: 6px; }
+    .cal-nav button {
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface-1);
+      border: 1px solid var(--hair-strong);
+      border-radius: 8px;
+      color: var(--fg-dim);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .cal-nav button:hover, .cal-nav button:focus-visible { color: var(--fg); border-color: var(--accent); outline: none; }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-bottom: 6px;
+    }
+    .cal-weekdays span {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--fg-mute);
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-cell {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fg-dim);
+      background: var(--surface-1);
+      position: relative;
+      gap: 3px;
+    }
+    .cal-cell.empty { background: transparent; }
+    .cal-cell.past { opacity: 0.45; }
+    .cal-cell.today { box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--fg); }
+    .cal-cell.booked {
+      background: color-mix(in oklab, var(--gren-color, var(--accent)) 22%, var(--surface-1));
+      color: var(--fg);
+    }
+    .cal-cell .cal-gren {
+      font-family: var(--font-sans);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: var(--gren-color, var(--accent));
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 0 2px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--hair);
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--fg-dim); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--dot); flex: 0 0 auto; }
+
+    #cal-status {
+      text-align: center;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--fg-mute);
+      margin-top: 18px;
+      min-height: 14px;
+    }
+
+    /* ── Familie-gren-velger (fullskjerm) ───────────────────────────── */
+
+    #gren-picker {
+      display: none;
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 50;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    #gren-picker.open { display: flex; }
+    #gren-picker .picker-boat { color: var(--accent); margin-bottom: 18px; }
+    #gren-picker h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    #gren-picker p { font-size: 13.5px; color: var(--fg-dim); margin-bottom: 32px; max-width: 300px; }
+
+    .gren-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 340px;
+    }
+    .gren-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      background: var(--surface-1);
+      border: 1px solid var(--hair-strong);
+      border-radius: 12px;
+      color: var(--fg);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .gren-option:hover, .gren-option:focus-visible { border-color: var(--gren-color); background: color-mix(in oklab, var(--gren-color) 10%, var(--surface-1)); outline: none; }
+    .gren-option .dot { width: 11px; height: 11px; border-radius: 999px; background: var(--gren-color); flex: 0 0 auto; }
+
+    #picker-cancel {
+      margin-top: 24px;
+      background: none;
+      border: none;
+      color: var(--fg-mute);
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 8px;
+    }
+    #picker-cancel:hover, #picker-cancel:focus-visible { color: var(--fg-dim); outline: none; }
+
+    /* ── Dugnad ──────────────────────────────────────────────────────── */
+
+    .saldo-card {
+      background: var(--surface-1);
+      border: 1px solid var(--hair-strong);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .saldo-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--fg-mute); margin-bottom: 6px;
+    }
+    .saldo-value { font-family: var(--font-mono); font-size: 42px; font-weight: 800; color: var(--accent); }
+
+    .dugnad-catalog {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .dugnad-btn {
+      background: var(--surface-1);
+      border: 1px solid var(--hair-strong);
+      border-radius: 10px;
+      padding: 14px 12px;
+      text-align: left;
+      color: var(--fg);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .dugnad-btn:hover, .dugnad-btn:focus-visible { border-color: var(--accent); outline: none; }
+    .dugnad-btn:disabled { opacity: 0.5; cursor: default; }
+    .dugnad-btn .dbtn-label { font-size: 13px; font-weight: 700; }
+    .dugnad-btn .dbtn-poeng { font-size: 11px; color: var(--accent); font-family: var(--font-mono); margin-top: 4px; }
+
+    .annet-card {
+      background: var(--surface-1);
+      border: 1px solid var(--hair-strong);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 20px;
+    }
+    .annet-label { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+    .annet-row { display: flex; gap: 8px; }
+    .annet-row input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--hair-strong);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      outline: none;
+    }
+    .annet-row input:focus { border-color: var(--accent); }
+    .btn-primary-sm {
+      background: var(--accent); color: var(--accent-ink);
+      border: none; border-radius: 8px; padding: 10px 18px;
+      font-weight: 800; font-size: 13px; cursor: pointer;
+    }
+    .btn-primary-sm:disabled { opacity: 0.5; cursor: default; }
+
+    .dugnad-log-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--fg-mute); margin-bottom: 10px;
+    }
+    .dugnad-log-item {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 10px 0; border-bottom: 1px solid var(--hair); font-size: 13px;
+    }
+    .dli-main { color: var(--fg); }
+    .dli-gren { color: var(--fg-dim); font-size: 11px; margin-left: 6px; }
+    .dli-poeng { font-family: var(--font-mono); color: var(--accent); font-weight: 700; white-space: nowrap; }
+    .dugnad-log-empty { color: var(--fg-mute); font-size: 12.5px; padding: 8px 0; }
+
+    #dugnad-status {
+      text-align: center; font-size: 11px; font-family: var(--font-mono);
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-mute);
+      margin-top: 14px; min-height: 14px;
+    }
+
+    /* ── Booking ─────────────────────────────────────────────────────── */
+
+    .cal-cell.free { cursor: pointer; }
+    .cal-cell.selected {
+      box-shadow: inset 0 0 0 2px var(--accent);
+      background: color-mix(in oklab, var(--accent) 18%, var(--surface-1));
+      color: var(--fg);
+    }
+
+    .booking-bar {
+      position: fixed; left: 0; right: 0; bottom: 72px;
+      display: flex; justify-content: center;
+      padding: 0 14px;
+      z-index: 25;
+      pointer-events: none;
+    }
+    .booking-bar-inner {
+      display: none;
+      pointer-events: auto;
+      width: 100%; max-width: 520px;
+      background: var(--surface-2);
+      border: 1px solid var(--hair-strong);
+      border-radius: 14px;
+      padding: 12px 16px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    .booking-bar-inner.open { display: flex; }
+    .booking-bar-text { font-size: 12.5px; font-weight: 700; }
+    .booking-bar-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+    .booking-bar-actions button {
+      border: none; border-radius: 8px; padding: 9px 14px;
+      font-weight: 800; font-size: 12.5px; cursor: pointer;
+    }
+    .booking-bar-actions .btn-book { background: var(--accent); color: var(--accent-ink); }
+    .booking-bar-actions .btn-cancel { background: transparent; color: var(--fg-dim); border: 1px solid var(--hair-strong); }
+
+    /* ── Header-tillegg: tilbakemelding-knapp ───────────────────────── */
+
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .feedback-btn {
+      width: 34px; height: 34px; flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface-1); border: 1px solid var(--hair-strong); border-radius: 999px;
+      color: var(--fg-dim); cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .feedback-btn:hover, .feedback-btn:focus-visible { color: var(--fg); border-color: var(--accent); outline: none; }
+
+    /* ── Generisk modal ──────────────────────────────────────────────── */
+
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 60;
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--surface-2);
+      border: 1px solid var(--hair-strong);
+      border-radius: 14px;
+      padding: 22px;
+      width: 100%; max-width: 380px;
+    }
+    .modal-box h2 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+    .modal-box p { font-size: 12.5px; color: var(--fg-dim); margin-bottom: 14px; line-height: 1.5; }
+    .modal-box textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--hair-strong);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--fg);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      resize: none;
+      height: 90px;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    .modal-box textarea:focus { border-color: var(--accent); }
+    .modal-actions { display: flex; gap: 8px; }
+    .modal-actions button { flex: 1; }
+    .btn-ghost-sm {
+      background: transparent; color: var(--fg-dim);
+      border: 1px solid var(--hair-strong); border-radius: 8px;
+      padding: 10px 18px; font-weight: 800; font-size: 13px; cursor: pointer;
+    }
+    #feedback-status, #settings-status { text-align: center; font-size: 11px; font-family: var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-mute); margin-top: 10px; min-height: 14px; }
+
+    /* ── Info: sub-navigasjon ────────────────────────────────────────── */
+
+    .info-subnav { display: flex; gap: 6px; margin-bottom: 20px; overflow-x: auto; }
+    .info-subtab {
+      position: relative;
+      flex: 0 0 auto;
+      background: var(--surface-1);
+      border: 1px solid var(--hair-strong);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--fg-dim);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .info-subtab.active { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+    .info-subtab:hover, .info-subtab:focus-visible { outline: none; border-color: var(--accent); }
+    .info-subtab .unread-dot {
+      position: absolute; top: 3px; right: 5px;
+      width: 6px; height: 6px; border-radius: 999px;
+      background: var(--gren-betina);
+      display: none;
+    }
+    .info-subtab.has-unread .unread-dot { display: block; }
+
+    .info-subview { display: none; }
+    .info-subview.active { display: block; animation: fade-in 0.2s ease-out; }
+
+    /* ── Oppgaveliste ────────────────────────────────────────────────── */
+
+    .add-row { display: flex; gap: 8px; margin-bottom: 20px; }
+    .add-row input {
+      flex: 1;
+      background: var(--surface-1);
+      border: 1px solid var(--hair-strong);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--fg);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      outline: none;
+    }
+    .add-row input:focus { border-color: var(--accent); }
+
+    .task-item { padding: 12px 0; border-bottom: 1px solid var(--hair); }
+    .task-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .task-desc { font-size: 13.5px; color: var(--fg); }
+    .task-meta { font-size: 11px; color: var(--fg-mute); margin-top: 2px; }
+    .task-complete-btn {
+      flex: 0 0 auto;
+      background: var(--surface-1); border: 1px solid var(--hair-strong); border-radius: 8px;
+      padding: 7px 12px; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700;
+      color: var(--fg-dim); cursor: pointer;
+    }
+    .task-complete-btn:hover, .task-complete-btn:focus-visible { border-color: var(--accent); color: var(--fg); outline: none; }
+    .task-timer-row { display: none; gap: 8px; margin-top: 10px; }
+    .task-timer-row.open { display: flex; }
+    .task-timer-row input {
+      flex: 1; background: var(--bg); border: 1px solid var(--hair-strong); border-radius: 8px;
+      padding: 8px 10px; color: var(--fg); font-family: var(--font-mono); font-size: 13px; outline: none;
+    }
+    .task-timer-row input:focus { border-color: var(--accent); }
+    .task-empty { color: var(--fg-mute); font-size: 12.5px; padding: 8px 0; }
+
+    /* ── Loggbok ─────────────────────────────────────────────────────── */
+
+    .logg-textarea-row textarea {
+      width: 100%;
+      background: var(--surface-1);
+      border: 1px solid var(--hair-strong);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--fg);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      resize: none;
+      height: 64px;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .logg-textarea-row textarea:focus { border-color: var(--accent); }
+    .logg-item { padding: 12px 0; border-bottom: 1px solid var(--hair); font-size: 13px; color: var(--fg-dim); }
+    .logg-meta { font-size: 11px; color: var(--fg-mute); margin-bottom: 4px; }
+
+    /* ── Nyheter ─────────────────────────────────────────────────────── */
+
+    .nyhet-item { padding: 12px 0; border-bottom: 1px solid var(--hair); font-size: 13px; color: var(--fg-dim); }
+    .nyhet-meta { font-size: 11px; color: var(--fg-mute); margin-bottom: 4px; }
+
+    /* ── Referanseinfo ───────────────────────────────────────────────── */
+
+    .ref-section { margin-bottom: 20px; }
+    .ref-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-mute); margin-bottom: 8px; }
+    .ref-body { font-size: 13.5px; color: var(--fg-dim); line-height: 1.6; }
+
+    /* ── Innstillinger ───────────────────────────────────────────────── */
+
+    .pin-gate { display: flex; flex-direction: column; align-items: center; padding: 60px 24px 20px; text-align: center; }
+    .pin-gate .stub-icon { color: var(--fg-mute); margin-bottom: 14px; }
+    .pin-gate h2 { font-size: 15px; font-weight: 700; color: var(--fg-dim); margin-bottom: 6px; }
+    .pin-gate p { font-size: 13px; color: var(--fg-faint); line-height: 1.5; max-width: 280px; }
+    .pin-gate input {
+      width: 140px; text-align: center; letter-spacing: 0.3em;
+      font-family: var(--font-mono); font-size: 18px;
+      background: var(--surface-1); border: 1px solid var(--hair-strong); border-radius: 8px;
+      padding: 12px; color: var(--fg); outline: none; margin: 18px 0 14px;
+    }
+    .pin-gate input:focus { border-color: var(--accent); }
+
+    .settings-section-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--fg-mute); margin: 22px 0 12px;
+    }
+    .settings-field { margin-bottom: 14px; }
+    .settings-field label { display: block; font-size: 12px; color: var(--fg-dim); margin-bottom: 6px; }
+    .settings-field input {
+      width: 100%;
+      background: var(--surface-1); border: 1px solid var(--hair-strong); border-radius: 8px;
+      padding: 10px 12px; color: var(--fg); font-family: var(--font-mono); font-size: 14px; outline: none;
+    }
+    .settings-field input:focus { border-color: var(--accent); }
+    .stipend-card {
+      background: var(--surface-1); border: 1px solid var(--hair-strong); border-radius: 10px;
+      padding: 14px; margin-top: 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><span class="boat">⚓</span> Sjøbein</h1>
+  <div class="header-actions">
+    <button id="feedback-btn" class="feedback-btn" aria-label="Send tilbakemelding">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+    </button>
+    <button id="gren-badge" class="gren-badge" aria-label="Bytt familie-gren">
+      <span class="gren-dot" id="gren-badge-dot"></span>
+      <span id="gren-badge-label">Velg gren</span>
+    </button>
+  </div>
+</header>
+
+<section class="view active" id="view-kalender">
+  <div class="cal-header">
+    <div class="cal-month" id="cal-month">—</div>
+    <div class="cal-nav">
+      <button id="cal-prev" aria-label="Forrige måned">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l-5 5 5 5"/></svg>
+      </button>
+      <button id="cal-next" aria-label="Neste måned">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="cal-weekdays">
+    <span>Man</span><span>Tir</span><span>Ons</span><span>Tor</span><span>Fre</span><span>Lør</span><span>Søn</span>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div class="legend" id="legend"></div>
+  <div id="cal-status"></div>
+</section>
+
+<section class="view" id="view-dugnad">
+  <div class="saldo-card">
+    <div class="saldo-label">Dugnadspoeng — <span id="saldo-gren">—</span></div>
+    <div class="saldo-value" id="saldo-value">0</div>
+  </div>
+
+  <div class="dugnad-catalog" id="dugnad-catalog"></div>
+
+  <div class="annet-card">
+    <div class="annet-label">Annet (timer)</div>
+    <div class="annet-row">
+      <input type="number" id="annet-timer" min="0.5" step="0.5" placeholder="Antall timer">
+      <button id="annet-logg" class="btn-primary-sm">Logg</button>
+    </div>
+  </div>
+
+  <div class="dugnad-log-title">Felles logg</div>
+  <div id="dugnad-log-list"></div>
+  <div id="dugnad-status"></div>
+</section>
+
+<section class="view" id="view-info">
+  <div class="info-subnav">
+    <button class="info-subtab active" data-sub="oppgaveliste">Oppgaver<span class="unread-dot"></span></button>
+    <button class="info-subtab" data-sub="loggbok">Loggbok<span class="unread-dot"></span></button>
+    <button class="info-subtab" data-sub="nyheter">Nyheter<span class="unread-dot"></span></button>
+    <button class="info-subtab" data-sub="referanse">Referanse</button>
+  </div>
+
+  <div class="info-subview active" id="sub-oppgaveliste">
+    <div class="add-row">
+      <input type="text" id="oppgave-input" placeholder="Ny oppgave, f.eks. fenderen er ødelagt">
+      <button class="btn-primary-sm" id="oppgave-legg-til">Legg til</button>
+    </div>
+    <div id="oppgave-list"></div>
+  </div>
+
+  <div class="info-subview" id="sub-loggbok">
+    <div class="logg-textarea-row">
+      <textarea id="loggbok-tekst" placeholder="Legg igjen en beskjed til neste bruker…"></textarea>
+      <button class="btn-primary-sm" id="loggbok-send">Send</button>
+    </div>
+    <div id="loggbok-list"></div>
+  </div>
+
+  <div class="info-subview" id="sub-nyheter">
+    <div id="nyheter-list"></div>
+  </div>
+
+  <div class="info-subview" id="sub-referanse">
+    <div class="ref-section">
+      <div class="ref-title">Plassnummer</div>
+      <div class="ref-body">[Fyll inn plassnummer og havn her]</div>
+    </div>
+    <div class="ref-section">
+      <div class="ref-title">Motor</div>
+      <div class="ref-body">[Fyll inn hvordan man starter motoren, hvor nøkkel/utstyr er, drivstofftype]</div>
+    </div>
+    <div class="ref-section">
+      <div class="ref-title">Sikkerhet</div>
+      <div class="ref-body">[Fyll inn hvor redningsvester ligger, hva man gjør ved dårlig vær, nødnummer]</div>
+    </div>
+    <div class="ref-section">
+      <div class="ref-title">Husregler</div>
+      <div class="ref-body">[Fyll inn f.eks. rydd etter deg, fyll tanken før du leverer tilbake, meld fra om skader]</div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-innstillinger">
+  <div class="pin-gate" id="pin-gate">
+    <div class="stub-icon">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+    </div>
+    <h2>Innstillinger er PIN-beskyttet</h2>
+    <p>Skriv inn PIN-koden for å justere standardgrenser og poengverdier.</p>
+    <input type="password" inputmode="numeric" id="pin-input" placeholder="PIN">
+    <button class="btn-primary-sm" id="pin-unlock">Lås opp</button>
+    <div id="pin-status"></div>
+  </div>
+
+  <div id="settings-form" style="display:none">
+    <div id="settings-fields"></div>
+    <button class="btn-primary-sm" id="settings-save" style="width:100%; margin-top:6px;">Lagre alle endringer</button>
+
+    <div class="stipend-card">
+      <div>
+        <div class="dbtn-label">Sesongstipend</div>
+        <div class="task-meta">Krediter MamPapp for sesongen</div>
+      </div>
+      <button class="btn-primary-sm" id="stipend-krediter">Krediter</button>
+    </div>
+
+    <div id="settings-status"></div>
+  </div>
+</section>
+
+<div class="booking-bar">
+  <div class="booking-bar-inner" id="booking-bar">
+    <div class="booking-bar-text" id="booking-bar-text"></div>
+    <div class="booking-bar-actions">
+      <button class="btn-cancel" id="booking-cancel">Avbryt</button>
+      <button class="btn-book" id="booking-confirm">Book</button>
+    </div>
+  </div>
+</div>
+
+<nav id="tabbar">
+  <div class="tabbar-inner">
+    <button class="tab-btn active" data-view="kalender">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+      Kalender
+    </button>
+    <button class="tab-btn" data-view="dugnad">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>
+      Dugnad
+    </button>
+    <button class="tab-btn" data-view="info">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+      Info
+      <span class="unread-dot"></span>
+    </button>
+    <button class="tab-btn" data-view="innstillinger">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Innstillinger
+    </button>
+  </div>
+</nav>
+
+<div id="gren-picker">
+  <div class="picker-boat">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v13M8 6h8M4 21c1.5 2 4 2 6-2 2 4 4.5 4 6 2M2 15h20l-2 5H4l-2-5z"/></svg>
+  </div>
+  <h2>Hvem er du?</h2>
+  <p>Velg familie-grenen din for å se og booke Snekka.</p>
+  <div class="gren-list" id="gren-list"></div>
+  <button id="picker-cancel" style="display:none">Avbryt</button>
+</div>
+
+<div class="modal-overlay" id="feedback-modal">
+  <div class="modal-box">
+    <h2>Tilbakemelding</h2>
+    <p>Send en beskjed direkte til Olav om appen — ønsker, feil, ideer.</p>
+    <textarea id="feedback-tekst" placeholder="Skriv her…"></textarea>
+    <div class="modal-actions">
+      <button class="btn-ghost-sm" id="feedback-cancel">Avbryt</button>
+      <button class="btn-primary-sm" id="feedback-send">Send</button>
+    </div>
+    <div id="feedback-status"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { APPS_SCRIPT_URL } from './config.local.js';
+  import { validateBooking, calculateCost } from './booking-motor.js';
+  import { calculateBalances, balanceFor } from './dugnadspoeng-regnskap.js';
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Domain — familie-grener (se CONTEXT.md)
+  // ───────────────────────────────────────────────────────────────────────
+  const GRENER = [
+    { id: 'MamPapp',           color: 'var(--gren-mampapp)'   },
+    { id: 'Olav+Frida',        color: 'var(--gren-olav)'      },
+    { id: 'Betina+Steinar',    color: 'var(--gren-betina)'    },
+    { id: 'Benedicte+Stian',   color: 'var(--gren-benedicte)' },
+  ];
+
+  const MAANEDER = ['januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember'];
+
+  const CATALOG = [
+    { id: 'Vårklargjøring', key: 'poeng_vaarklargjoring' },
+    { id: 'Opptak',         key: 'poeng_opptak' },
+    { id: 'Vask',           key: 'poeng_vask' },
+    { id: 'Pusse og lakke', key: 'poeng_pusse_lakke' },
+    { id: 'Dagvakt',        key: 'poeng_dagvakt' },
+    { id: 'Nattevakt',      key: 'poeng_nattevakt' },
+  ];
+
+  const DEFAULT_INNSTILLINGER = {
+    maks_lengde_dager: 4, maks_horisont_uker: 6, pris_ekstra_dag: 5, pris_fri_horisont: 5,
+    poeng_vaarklargjoring: 15, poeng_opptak: 15, poeng_vask: 5, poeng_pusse_lakke: 10,
+    poeng_dagvakt: 10, poeng_nattevakt: 18, poeng_annet_time: 1,
+  };
+
+  function grenColor(id) {
+    return GRENER.find(g => g.id === id)?.color || 'var(--accent)';
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // State
+  // ───────────────────────────────────────────────────────────────────────
+  let currentGren = localStorage.getItem('familieGren') || '';
+  let bookinger = JSON.parse(localStorage.getItem('bookinger') || '[]');
+  let dugnad = JSON.parse(localStorage.getItem('dugnad') || '[]');
+  let innstillinger = { ...DEFAULT_INNSTILLINGER, ...JSON.parse(localStorage.getItem('innstillinger') || '{}') };
+  let calMonth = new Date(); calMonth.setDate(1);
+  let selection = null; // { start, end }
+  let loggbok = JSON.parse(localStorage.getItem('loggbok') || '[]');
+  let oppgaveliste = JSON.parse(localStorage.getItem('oppgaveliste') || '[]');
+  let nyheter = JSON.parse(localStorage.getItem('nyheter') || '[]');
+  let settingsPin = '';
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function relTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit' }) + ' kl. ' + d.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Navigasjon mellom seksjoner
+  // ───────────────────────────────────────────────────────────────────────
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+
+  function switchView(view) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    document.querySelectorAll('section.view').forEach(s => s.classList.toggle('active', s.id === `view-${view}`));
+    if (view === 'info') {
+      const activeSub = document.querySelector('.info-subtab.active');
+      if (activeSub) { markSeen(activeSub.dataset.sub); renderUnreadDots(); }
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Info: sub-navigasjon
+  // ───────────────────────────────────────────────────────────────────────
+  document.querySelectorAll('.info-subtab').forEach(btn => {
+    btn.addEventListener('click', () => switchInfoSub(btn.dataset.sub));
+  });
+
+  function switchInfoSub(sub) {
+    document.querySelectorAll('.info-subtab').forEach(b => b.classList.toggle('active', b.dataset.sub === sub));
+    document.querySelectorAll('.info-subview').forEach(v => v.classList.toggle('active', v.id === `sub-${sub}`));
+    markSeen(sub);
+    renderUnreadDots();
+  }
+
+  function lastSeen(key) { return localStorage.getItem(`seen_${key}`) || ''; }
+
+  function markSeen(key) {
+    const map = { oppgaveliste: { items: oppgaveliste, field: 'opprettetTidspunkt' }, loggbok: { items: loggbok, field: 'tidspunkt' }, nyheter: { items: nyheter, field: 'tidspunkt' } };
+    const entry = map[key];
+    if (!entry) return;
+    const newest = entry.items.reduce((m, i) => { const t = i[entry.field] || ''; return t > m ? t : m; }, '');
+    if (newest) localStorage.setItem(`seen_${key}`, newest);
+  }
+
+  function hasUnread(key, items, field) {
+    const seen = lastSeen(key);
+    return items.some(i => (i[field] || '') > seen);
+  }
+
+  function markSeenIfActive(key) {
+    const active = document.querySelector('.info-subtab.active');
+    const infoOpen = document.getElementById('view-info').classList.contains('active');
+    if (infoOpen && active && active.dataset.sub === key) markSeen(key);
+  }
+
+  function renderUnreadDots() {
+    const oppgaveUnread = hasUnread('oppgaveliste', oppgaveliste, 'opprettetTidspunkt');
+    const loggbokUnread = hasUnread('loggbok', loggbok, 'tidspunkt');
+    const nyheterUnread = hasUnread('nyheter', nyheter, 'tidspunkt');
+    document.querySelector('.info-subtab[data-sub="oppgaveliste"]').classList.toggle('has-unread', oppgaveUnread);
+    document.querySelector('.info-subtab[data-sub="loggbok"]').classList.toggle('has-unread', loggbokUnread);
+    document.querySelector('.info-subtab[data-sub="nyheter"]').classList.toggle('has-unread', nyheterUnread);
+    document.querySelector('.tab-btn[data-view="info"]').classList.toggle('has-unread', oppgaveUnread || loggbokUnread || nyheterUnread);
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Familie-gren-velger
+  // ───────────────────────────────────────────────────────────────────────
+  const picker = document.getElementById('gren-picker');
+  const grenList = document.getElementById('gren-list');
+
+  grenList.innerHTML = GRENER.map(g => `
+    <button class="gren-option" style="--gren-color:${g.color}" data-id="${g.id}">
+      <span class="dot"></span>${g.id}
+    </button>
+  `).join('');
+
+  grenList.querySelectorAll('.gren-option').forEach(btn => {
+    btn.addEventListener('click', () => selectGren(btn.dataset.id));
+  });
+
+  function selectGren(id) {
+    currentGren = id;
+    localStorage.setItem('familieGren', id);
+    updateGrenBadge();
+    closePicker();
+    renderDugnad();
+    renderCalendar();
+  }
+
+  function openPicker() {
+    document.getElementById('picker-cancel').style.display = currentGren ? '' : 'none';
+    picker.classList.add('open');
+  }
+  function closePicker() { picker.classList.remove('open'); }
+
+  document.getElementById('gren-badge').addEventListener('click', openPicker);
+  document.getElementById('picker-cancel').addEventListener('click', closePicker);
+
+  function updateGrenBadge() {
+    const dot = document.getElementById('gren-badge-dot');
+    const label = document.getElementById('gren-badge-label');
+    if (currentGren) {
+      dot.style.setProperty('--dot', grenColor(currentGren));
+      label.textContent = currentGren;
+    } else {
+      dot.style.setProperty('--dot', 'var(--fg-mute)');
+      label.textContent = 'Velg gren';
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Kalender
+  // ───────────────────────────────────────────────────────────────────────
+  function toISODate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function bookingFor(dateStr) {
+    return bookinger.find(b => b.start && b.end && dateStr >= b.start && dateStr <= b.end);
+  }
+
+  function renderCalendar() {
+    document.getElementById('cal-month').textContent =
+      `${MAANEDER[calMonth.getMonth()]} ${calMonth.getFullYear()}`;
+
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+
+    const year = calMonth.getFullYear();
+    const month = calMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const leadingBlanks = (firstDay.getDay() + 6) % 7; // mandag = 0
+
+    const todayStr = toISODate(new Date());
+
+    for (let i = 0; i < leadingBlanks; i++) {
+      grid.appendChild(Object.assign(document.createElement('div'), { className: 'cal-cell empty' }));
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(year, month, day);
+      const dateStr = toISODate(d);
+      const booking = bookingFor(dateStr);
+      const isPast = dateStr < todayStr;
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell';
+      if (isPast) cell.classList.add('past');
+      if (dateStr === todayStr) cell.classList.add('today');
+      if (booking) {
+        cell.classList.add('booked');
+        cell.style.setProperty('--gren-color', grenColor(booking.familieGren));
+      } else if (!isPast) {
+        cell.classList.add('free');
+        cell.addEventListener('click', () => handleDaySelect(dateStr));
+      }
+      if (selection && dateStr >= selection.start && dateStr <= selection.end) {
+        cell.classList.add('selected');
+      }
+      cell.innerHTML = `<span>${day}</span>${booking ? `<span class="cal-gren">${booking.familieGren.split('+')[0]}</span>` : ''}`;
+      grid.appendChild(cell);
+    }
+
+    renderLegend();
+  }
+
+  function renderLegend() {
+    const legend = document.getElementById('legend');
+    legend.innerHTML = GRENER.map(g => `
+      <div class="legend-item"><span class="legend-dot" style="--dot:${g.color}"></span>${g.id}</div>
+    `).join('');
+  }
+
+  document.getElementById('cal-prev').addEventListener('click', () => {
+    calMonth.setMonth(calMonth.getMonth() - 1);
+    renderCalendar();
+  });
+  document.getElementById('cal-next').addEventListener('click', () => {
+    calMonth.setMonth(calMonth.getMonth() + 1);
+    renderCalendar();
+  });
+
+  function setCalStatus(msg) {
+    document.getElementById('cal-status').textContent = msg;
+  }
+
+  async function fetchBookinger() {
+    setCalStatus('Henter…');
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getBookinger&_=${Date.now()}`);
+      const data = await res.json();
+      bookinger = Array.isArray(data) ? data : [];
+      localStorage.setItem('bookinger', JSON.stringify(bookinger));
+      renderCalendar();
+      renderDugnad();
+      setCalStatus('');
+    } catch {
+      setCalStatus('Offline — viser sist lagrede data');
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Booking — velg fri periode i kalenderen og book den
+  // ───────────────────────────────────────────────────────────────────────
+  function isRangeFree(startStr, endStr) {
+    let d = new Date(`${startStr}T00:00:00`);
+    const end = new Date(`${endStr}T00:00:00`);
+    while (d <= end) {
+      if (bookingFor(toISODate(d))) return false;
+      d.setDate(d.getDate() + 1);
+    }
+    return true;
+  }
+
+  function handleDaySelect(dateStr) {
+    if (!currentGren) { openPicker(); return; }
+
+    if (!selection) {
+      selection = { start: dateStr, end: dateStr };
+    } else if (dateStr === selection.start && selection.start === selection.end) {
+      selection = null;
+    } else if (dateStr > selection.start && isRangeFree(selection.start, dateStr)) {
+      selection.end = dateStr;
+    } else {
+      selection = { start: dateStr, end: dateStr };
+    }
+
+    renderCalendar();
+    renderBookingBar();
+  }
+
+  function clearSelection() {
+    selection = null;
+    renderCalendar();
+    renderBookingBar();
+  }
+
+  function formatKort(dateStr) {
+    const [y, m, d] = dateStr.split('-');
+    return `${d}.${m}`;
+  }
+
+  function renderBookingBar() {
+    const bar = document.getElementById('booking-bar');
+    if (!selection) { bar.classList.remove('open'); return; }
+    const days = Math.round((new Date(`${selection.end}T00:00:00`) - new Date(`${selection.start}T00:00:00`)) / 86400000) + 1;
+    const cost = calculateCost(selection, {
+      maksLengdeDager: innstillinger.maks_lengde_dager,
+      maksHorisontUker: innstillinger.maks_horisont_uker,
+      prisEkstraDag: innstillinger.pris_ekstra_dag,
+      prisFriHorisont: innstillinger.pris_fri_horisont,
+    });
+    const dagerTxt = selection.start === selection.end ? '1 dag' : `${days} dager`;
+    const poengTxt = cost.totalCost > 0 ? ` · ${cost.totalCost} poeng` : '';
+    const text = selection.start === selection.end
+      ? `${formatKort(selection.start)} · ${dagerTxt}${poengTxt}`
+      : `${formatKort(selection.start)}–${formatKort(selection.end)} · ${dagerTxt}${poengTxt}`;
+    document.getElementById('booking-bar-text').textContent = text;
+    bar.classList.add('open');
+  }
+
+  document.getElementById('booking-cancel').addEventListener('click', clearSelection);
+  document.getElementById('booking-confirm').addEventListener('click', confirmBooking);
+
+  async function confirmBooking() {
+    if (!selection || !currentGren) return;
+
+    const balances = calculateBalances({
+      dugnadRegistreringer: dugnad.map(d => ({ familieGren: d.familieGren, poeng: d.poeng })),
+      bookinger: bookinger.map(b => ({ familieGren: b.familieGren, poengBruktLengde: b.poengBruktLengde, poengBruktHorisont: b.poengBruktHorisont })),
+    });
+    const saldo = balanceFor(currentGren, balances);
+
+    const settings = {
+      maksLengdeDager: innstillinger.maks_lengde_dager,
+      maksHorisontUker: innstillinger.maks_horisont_uker,
+      prisEkstraDag: innstillinger.pris_ekstra_dag,
+      prisFriHorisont: innstillinger.pris_fri_horisont,
+    };
+
+    const result = validateBooking({
+      existingBookinger: bookinger,
+      proposed: { start: selection.start, end: selection.end },
+      settings,
+      saldo,
+    });
+
+    if (!result.valid) {
+      if (result.reason === 'overlap') {
+        setCalStatus('Denne perioden er allerede booket');
+      } else {
+        setCalStatus(`Krever ${result.cost.totalCost} dugnadspoeng, du har ${saldo}`);
+      }
+      return;
+    }
+
+    setCalStatus('Booker…');
+    try {
+      const params = new URLSearchParams({
+        action: 'logBooking', familieGren: currentGren, start: selection.start, end: selection.end, _: Date.now(),
+      });
+      const res = await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      const data = await res.json();
+      if (data.error) {
+        setCalStatus('Kunne ikke booke — prøv igjen');
+        return;
+      }
+      selection = null;
+      renderBookingBar();
+      await fetchBookinger();
+      setCalStatus(data.poengBrukt > 0 ? `Booket! −${data.poengBrukt} poeng` : 'Booket!');
+      setTimeout(() => setCalStatus(''), 2500);
+    } catch {
+      setCalStatus('Offline — kunne ikke booke');
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Innstillinger (hentet, brukes til grenser og poengverdier)
+  // ───────────────────────────────────────────────────────────────────────
+  async function fetchInnstillinger() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getInnstillinger&_=${Date.now()}`);
+      const data = await res.json();
+      innstillinger = { ...DEFAULT_INNSTILLINGER, ...data };
+      localStorage.setItem('innstillinger', JSON.stringify(innstillinger));
+      renderDugnad();
+    } catch {
+      // beholder sist kjente innstillinger
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Dugnad
+  // ───────────────────────────────────────────────────────────────────────
+  function setDugnadStatus(msg) {
+    document.getElementById('dugnad-status').textContent = msg;
+  }
+
+  function renderDugnad() {
+    document.getElementById('saldo-gren').textContent = currentGren || 'velg gren';
+
+    const balances = calculateBalances({
+      dugnadRegistreringer: dugnad.map(d => ({ familieGren: d.familieGren, poeng: d.poeng })),
+      bookinger: bookinger.map(b => ({ familieGren: b.familieGren, poengBruktLengde: b.poengBruktLengde, poengBruktHorisont: b.poengBruktHorisont })),
+    });
+    document.getElementById('saldo-value').textContent = currentGren ? balanceFor(currentGren, balances) : '—';
+
+    const catalog = document.getElementById('dugnad-catalog');
+    catalog.innerHTML = CATALOG.map(c => `
+      <button class="dugnad-btn" data-type="${c.id}">
+        <div class="dbtn-label">${c.id}</div>
+        <div class="dbtn-poeng">${innstillinger[c.key]} poeng</div>
+      </button>
+    `).join('');
+    catalog.querySelectorAll('.dugnad-btn').forEach(btn => {
+      btn.addEventListener('click', () => logDugnad(btn.dataset.type));
+    });
+
+    const list = document.getElementById('dugnad-log-list');
+    if (dugnad.length === 0) {
+      list.innerHTML = '<div class="dugnad-log-empty">Ingen dugnad registrert ennå.</div>';
+    } else {
+      const sorted = [...dugnad].sort((a, b) => (b.tidspunkt || '').localeCompare(a.tidspunkt || ''));
+      list.innerHTML = sorted.slice(0, 30).map(d => `
+        <div class="dugnad-log-item">
+          <span class="dli-main">${d.type}<span class="dli-gren">${d.familieGren}</span></span>
+          <span class="dli-poeng">+${d.poeng}</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  async function logDugnad(type, timer) {
+    if (!currentGren) { openPicker(); return; }
+
+    setDugnadStatus('Lagrer…');
+    try {
+      const params = new URLSearchParams({ action: 'logDugnad', familieGren: currentGren, type, _: Date.now() });
+      if (timer) params.set('timer', timer);
+      const res = await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      const data = await res.json();
+      if (data.error) {
+        setDugnadStatus('Kunne ikke registrere — prøv igjen');
+        return;
+      }
+      await fetchDugnad();
+      setDugnadStatus(`Registrert! +${data.poeng} poeng`);
+      setTimeout(() => setDugnadStatus(''), 2500);
+    } catch {
+      setDugnadStatus('Offline — kunne ikke registrere');
+    }
+  }
+
+  document.getElementById('annet-logg').addEventListener('click', () => {
+    const input = document.getElementById('annet-timer');
+    const timer = Number(input.value);
+    if (!timer || timer <= 0) { setDugnadStatus('Skriv inn antall timer'); return; }
+    logDugnad('Annet', timer);
+    input.value = '';
+  });
+
+  async function fetchDugnad() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getDugnad&_=${Date.now()}`);
+      const data = await res.json();
+      dugnad = Array.isArray(data) ? data : [];
+      localStorage.setItem('dugnad', JSON.stringify(dugnad));
+      renderDugnad();
+    } catch {
+      // beholder sist kjente dugnad-data
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Oppgaveliste
+  // ───────────────────────────────────────────────────────────────────────
+  function renderOppgaveliste() {
+    const open = oppgaveliste.filter(o => o.status !== 'gjort').sort((a, b) => (b.opprettetTidspunkt || '').localeCompare(a.opprettetTidspunkt || ''));
+    const list = document.getElementById('oppgave-list');
+    if (open.length === 0) {
+      list.innerHTML = '<div class="task-empty">Ingen åpne oppgaver.</div>';
+    } else {
+      list.innerHTML = open.map(o => `
+        <div class="task-item">
+          <div class="task-row">
+            <div>
+              <div class="task-desc">${escapeHtml(o.beskrivelse)}</div>
+              <div class="task-meta">lagt til av ${o.opprettetAv}</div>
+            </div>
+            <button class="task-complete-btn" data-toggle-id="${o.id}">Fullfør</button>
+          </div>
+          <div class="task-timer-row" id="timer-row-${o.id}">
+            <input type="number" min="0.5" step="0.5" placeholder="Timer brukt" id="timer-input-${o.id}">
+            <button class="btn-primary-sm" data-confirm-id="${o.id}">Bekreft</button>
+          </div>
+        </div>
+      `).join('');
+      list.querySelectorAll('[data-toggle-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById(`timer-row-${btn.dataset.toggleId}`).classList.toggle('open');
+        });
+      });
+      list.querySelectorAll('[data-confirm-id]').forEach(btn => {
+        btn.addEventListener('click', () => fullforOppgave(btn.dataset.confirmId));
+      });
+    }
+    renderUnreadDots();
+  }
+
+  async function fullforOppgave(id) {
+    if (!currentGren) { openPicker(); return; }
+    const timerInput = document.getElementById(`timer-input-${id}`);
+    const timer = Number(timerInput.value);
+    if (!timer || timer <= 0) return;
+    try {
+      const params = new URLSearchParams({ action: 'fullforOppgave', id, familieGren: currentGren, timer, _: Date.now() });
+      const res = await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      const data = await res.json();
+      if (data.error) return;
+      await fetchOppgaveliste();
+      await fetchDugnad();
+    } catch {
+      // beholder sist kjente state
+    }
+  }
+
+  document.getElementById('oppgave-legg-til').addEventListener('click', async () => {
+    if (!currentGren) { openPicker(); return; }
+    const input = document.getElementById('oppgave-input');
+    const beskrivelse = input.value.trim();
+    if (!beskrivelse) return;
+    try {
+      const params = new URLSearchParams({ action: 'leggTilOppgave', familieGren: currentGren, beskrivelse, _: Date.now() });
+      await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      input.value = '';
+      await fetchOppgaveliste();
+    } catch {
+      // beholder sist kjente state
+    }
+  });
+
+  async function fetchOppgaveliste() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getOppgaveliste&_=${Date.now()}`);
+      const data = await res.json();
+      oppgaveliste = Array.isArray(data) ? data : [];
+      localStorage.setItem('oppgaveliste', JSON.stringify(oppgaveliste));
+      markSeenIfActive('oppgaveliste');
+      renderOppgaveliste();
+    } catch {
+      // beholder sist kjente state
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Loggbok
+  // ───────────────────────────────────────────────────────────────────────
+  function renderLoggbok() {
+    const list = document.getElementById('loggbok-list');
+    if (loggbok.length === 0) {
+      list.innerHTML = '<div class="task-empty">Ingen meldinger ennå.</div>';
+    } else {
+      const sorted = [...loggbok].sort((a, b) => (b.tidspunkt || '').localeCompare(a.tidspunkt || ''));
+      list.innerHTML = sorted.map(l => `
+        <div class="logg-item">
+          <div class="logg-meta">${l.familieGren} · ${relTime(l.tidspunkt)}</div>
+          ${escapeHtml(l.tekst)}
+        </div>
+      `).join('');
+    }
+    renderUnreadDots();
+  }
+
+  document.getElementById('loggbok-send').addEventListener('click', async () => {
+    if (!currentGren) { openPicker(); return; }
+    const textarea = document.getElementById('loggbok-tekst');
+    const tekst = textarea.value.trim();
+    if (!tekst) return;
+    try {
+      const params = new URLSearchParams({ action: 'logLoggbok', familieGren: currentGren, tekst, _: Date.now() });
+      await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      textarea.value = '';
+      await fetchLoggbok();
+    } catch {
+      // beholder sist kjente state
+    }
+  });
+
+  async function fetchLoggbok() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getLoggbok&_=${Date.now()}`);
+      const data = await res.json();
+      loggbok = Array.isArray(data) ? data : [];
+      localStorage.setItem('loggbok', JSON.stringify(loggbok));
+      markSeenIfActive('loggbok');
+      renderLoggbok();
+    } catch {
+      // beholder sist kjente state
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Nyheter
+  // ───────────────────────────────────────────────────────────────────────
+  function renderNyheter() {
+    const list = document.getElementById('nyheter-list');
+    if (nyheter.length === 0) {
+      list.innerHTML = '<div class="task-empty">Ingen nyheter ennå.</div>';
+    } else {
+      const sorted = [...nyheter].sort((a, b) => (b.tidspunkt || '').localeCompare(a.tidspunkt || ''));
+      list.innerHTML = sorted.map(n => `
+        <div class="nyhet-item">
+          <div class="nyhet-meta">${relTime(n.tidspunkt)}</div>
+          ${escapeHtml(n.tekst)}
+        </div>
+      `).join('');
+    }
+    renderUnreadDots();
+  }
+
+  async function fetchNyheter() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getNyheter&_=${Date.now()}`);
+      const data = await res.json();
+      nyheter = Array.isArray(data) ? data : [];
+      localStorage.setItem('nyheter', JSON.stringify(nyheter));
+      markSeenIfActive('nyheter');
+      renderNyheter();
+    } catch {
+      // beholder sist kjente state
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Innstillinger — PIN-gate + redigerbare tall + sesongstipend
+  // ───────────────────────────────────────────────────────────────────────
+  const SETTINGS_FIELDS = [
+    { key: 'maks_lengde_dager',    label: 'Maks lengde uten poeng (dager)',              group: 'Grenser' },
+    { key: 'maks_horisont_uker',   label: 'Maks planleggingshorisont uten poeng (uker)', group: 'Grenser' },
+    { key: 'pris_ekstra_dag',      label: 'Pris per ekstra dag (poeng)',                 group: 'Grenser' },
+    { key: 'pris_fri_horisont',    label: 'Pris for fri horisont (poeng)',               group: 'Grenser' },
+    { key: 'poeng_vaarklargjoring', label: 'Vårklargjøring (poeng)',                     group: 'Dugnadspoeng' },
+    { key: 'poeng_opptak',         label: 'Opptak (poeng)',                              group: 'Dugnadspoeng' },
+    { key: 'poeng_vask',           label: 'Vask (poeng)',                                group: 'Dugnadspoeng' },
+    { key: 'poeng_pusse_lakke',    label: 'Pusse og lakke (poeng)',                       group: 'Dugnadspoeng' },
+    { key: 'poeng_dagvakt',        label: 'Dagvakt (poeng)',                              group: 'Dugnadspoeng' },
+    { key: 'poeng_nattevakt',      label: 'Nattevakt (poeng)',                            group: 'Dugnadspoeng' },
+    { key: 'poeng_annet_time',     label: 'Annet (poeng/time)',                           group: 'Dugnadspoeng' },
+    { key: 'sesongstipend',        label: 'Sesongstipend til MamPapp (poeng)',            group: 'Dugnadspoeng' },
+  ];
+
+  function setPinStatus(msg) { document.getElementById('pin-status').textContent = msg; }
+  function setSettingsStatus(msg) { document.getElementById('settings-status').textContent = msg; }
+
+  document.getElementById('pin-unlock').addEventListener('click', async () => {
+    const input = document.getElementById('pin-input');
+    const pin = input.value.trim();
+    if (!pin) return;
+    setPinStatus('Sjekker…');
+    try {
+      const params = new URLSearchParams({ action: 'updateInnstillinger', pin, _: Date.now() });
+      const res = await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      const data = await res.json();
+      if (data.error) { setPinStatus('Feil PIN'); return; }
+      settingsPin = pin;
+      setPinStatus('');
+      renderSettingsForm();
+    } catch {
+      setPinStatus('Offline — kunne ikke sjekke PIN');
+    }
+  });
+
+  function renderSettingsForm() {
+    document.getElementById('pin-gate').style.display = 'none';
+    document.getElementById('settings-form').style.display = 'block';
+    const container = document.getElementById('settings-fields');
+    let html = '';
+    let lastGroup = '';
+    SETTINGS_FIELDS.forEach(f => {
+      if (f.group !== lastGroup) {
+        html += `<div class="settings-section-title">${f.group}</div>`;
+        lastGroup = f.group;
+      }
+      html += `
+        <div class="settings-field">
+          <label>${f.label}</label>
+          <input type="number" step="any" data-key="${f.key}" value="${innstillinger[f.key]}">
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  document.getElementById('settings-save').addEventListener('click', async () => {
+    const inputs = document.querySelectorAll('#settings-fields input');
+    const params = new URLSearchParams({ action: 'updateInnstillinger', pin: settingsPin, _: Date.now() });
+    inputs.forEach(inp => params.set(inp.dataset.key, inp.value));
+    setSettingsStatus('Lagrer…');
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      const data = await res.json();
+      if (data.error) { setSettingsStatus('Kunne ikke lagre — feil PIN?'); return; }
+      await fetchInnstillinger();
+      await fetchNyheter();
+      setSettingsStatus('Lagret!');
+      setTimeout(() => setSettingsStatus(''), 2000);
+    } catch {
+      setSettingsStatus('Offline — kunne ikke lagre');
+    }
+  });
+
+  document.getElementById('stipend-krediter').addEventListener('click', async () => {
+    setSettingsStatus('Krediterer…');
+    try {
+      const params = new URLSearchParams({ action: 'creditSesongstipend', pin: settingsPin, _: Date.now() });
+      const res = await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      const data = await res.json();
+      if (data.error === 'already-credited') { setSettingsStatus('Allerede kreditert i år'); return; }
+      if (data.error) { setSettingsStatus('Kunne ikke kreditere'); return; }
+      await fetchDugnad();
+      setSettingsStatus(`Kreditert +${data.poeng} poeng til MamPapp`);
+      setTimeout(() => setSettingsStatus(''), 3000);
+    } catch {
+      setSettingsStatus('Offline — kunne ikke kreditere');
+    }
+  });
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Tilbakemelding
+  // ───────────────────────────────────────────────────────────────────────
+  const feedbackModal = document.getElementById('feedback-modal');
+  document.getElementById('feedback-btn').addEventListener('click', () => feedbackModal.classList.add('open'));
+  document.getElementById('feedback-cancel').addEventListener('click', () => feedbackModal.classList.remove('open'));
+
+  document.getElementById('feedback-send').addEventListener('click', async () => {
+    if (!currentGren) { openPicker(); return; }
+    const textarea = document.getElementById('feedback-tekst');
+    const tekst = textarea.value.trim();
+    if (!tekst) return;
+    const status = document.getElementById('feedback-status');
+    status.textContent = 'Sender…';
+    try {
+      const params = new URLSearchParams({ action: 'logTilbakemelding', familieGren: currentGren, tekst, _: Date.now() });
+      const res = await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      const data = await res.json();
+      if (data.error) { status.textContent = 'Kunne ikke sende — prøv igjen'; return; }
+      textarea.value = '';
+      status.textContent = 'Sendt, takk!';
+      setTimeout(() => { feedbackModal.classList.remove('open'); status.textContent = ''; }, 1200);
+    } catch {
+      status.textContent = 'Offline — kunne ikke sende';
+    }
+  });
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Boot
+  // ───────────────────────────────────────────────────────────────────────
+  updateGrenBadge();
+  if (!currentGren) openPicker();
+  renderCalendar();
+  renderDugnad();
+  renderOppgaveliste();
+  renderLoggbok();
+  renderNyheter();
+  renderUnreadDots();
+  fetchBookinger();
+  fetchInnstillinger();
+  fetchDugnad();
+  fetchOppgaveliste();
+  fetchLoggbok();
+  fetchNyheter();
+</script>
+</body>
+</html>
